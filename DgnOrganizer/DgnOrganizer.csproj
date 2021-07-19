@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{69D35EE3-2AAF-445C-A060-1D8165C3A420}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DgnOrganizer</RootNamespace>
+    <AssemblyName>DgnOrganizer</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Bentley.DgnPlatformNET, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.DgnPlatformNET.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.EC.AbstractUI3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.EC.AbstractUI3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.EC.Persistence3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.EC.Persistence3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.EC.PluginBuilder3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.EC.PluginBuilder3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.EC.Presentation3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.EC.Presentation3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.ECObjects.Interop3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.ECObjects.Interop3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.ECObjects.MixedMode3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.ECObjects.MixedMode3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.ECObjects3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.ECObjects3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.ECSystem3, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.ECSystem3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.ECXAttributes, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.ECXAttributes.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.Exceptions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.Exceptions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.ExtensionDiscovery, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.ExtensionDiscovery.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.General.1.0, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.General.1.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.General.MixedMode1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.General.MixedMode1.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.GeometryNET, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.GeometryNET.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.GeometryNET.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.GeometryNET.Common.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.GeometryNET.FB, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.GeometryNET.FB.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.GeometryNET.Structs, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.GeometryNET.Structs.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.logging-2.0, Version=2.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.logging-2.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.logging.console-2.0, Version=2.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.Logging.console-2.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.logging.interop3, Version=2.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.Logging.interop3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.logging.log4net-2.0, Version=2.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.Logging.log4net-2.0.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.Platform, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.Platform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Bentley.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=4bf6c96a266e58d4, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124\Bentley.UI.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Logger.cs" />
+    <Compile Include="ProgressBar.cs" />
+    <Compile Include="XmlData\SimElement.cs" />
+    <Compile Include="XmlData\SimFile.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XmlDocDataHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>Set SDK_PATH="c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124"
+xcopy /Y/S "%25SDK_PATH%25" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
+</Project>
