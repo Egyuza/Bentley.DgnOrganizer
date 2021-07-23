@@ -18,7 +18,6 @@ class SimFile
     public SimFile(string uri)
     {
         xDoc_ = XDocument.Load(uri);
-
         IEnumerable<XElement> xElements = 
             xDoc_.XPathSelectElements("DataGroupSystem/SimFile/SimElement");
 
