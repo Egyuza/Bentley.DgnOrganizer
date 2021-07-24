@@ -5,14 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
 
 using System.Text.RegularExpressions;
-using System.Collections.Specialized;
-using ConsoleToolkit;
-using ConsoleToolkit.ApplicationStyles;
 
 namespace DgnOrganizer
 {
@@ -22,29 +16,32 @@ class Organizer
     {
         try
         {
+            Logger.setLogFolder(options.LogDir);
+            Logger.Log.StartErrorsCounting();
             Logger.Log.Info("=== START WORK");
             run_(options);
         }
         catch (Exception ex) 
         {
-            Logger.Log.Error(ex.Message + (ex.InnerException != null ? ("\n" + ex.InnerException.Message) : string.Empty));
+            ex.LogError();
         }
         Logger.Log.Info("=== END WORK");
-        System.Console.ReadKey();
+        Logger.Log.Info($"Ошибок: {Logger.Log.GetErrorsCount()}");
+        Console.ReadKey();
     }
 
     private static void run_(Options options)
     {
         if (string.IsNullOrWhiteSpace(options.Path))
         {
-            Logger.Log.Error("В качестве 1-го аргумента должен выступать путь к обрабатываемому каталогу моделей dgn");
+            Logger.Log.ErrorEx("В качестве 1-го аргумента должен выступать путь к обрабатываемому каталогу моделей dgn");
             return;
         }
 
         string workFolder = Path.GetFullPath(options.Path);
         if (!Directory.Exists(workFolder))
         {
-            Logger.Log.Error($"Не найден рабочий каталог '{workFolder}'");
+            Logger.Log.ErrorEx($"Не найден рабочий каталог '{workFolder}'");
             return;
         }
 
@@ -80,12 +77,7 @@ class Organizer
             }
             catch (Exception ex)
             {
-                Logger.Log.Error($"Файл '{dgnPath}':\n" + ex.Message +
-                (ex.InnerException != null ? ("\n" + ex.InnerException.Message) : string.Empty)
-#if DEBUG
-                + ex.StackTrace
-#endif
-                );
+                ex.LogError($"Файл '{dgnPath}':");
             }
             finally
             {
@@ -99,7 +91,7 @@ class Organizer
             }
         }
 
-        Logger.Log.Info($"Целевой каталог обработанных файлов: \"{outputDir}\"");     
+        Logger.Log.Info($"Результирующий каталог обработанных файлов: \"{outputDir}\"");
     }
 
     static string ensureFolderStructure(string rootFolder, string[] structure)
@@ -137,11 +129,17 @@ class Organizer
             Logger.Log.Warn($"'{sourceFileName}:' - '{spec}' - не распозана литера специальности, но файл будет обработан в соответствии с конфигом");
         }
 
-        DgnFile sourceFile;
-        DgnModel sourceModel;
-        LoadOrCreate_FileAndDefaultModel(out sourceFile, out sourceModel, uri, null);
-        
-        var simFile = new SimFile(Path.ChangeExtension(uri, ".xml"));
+        SimFile simFile;
+        string xmlDataPath = Path.ChangeExtension(uri, ".xml");
+        try
+        {
+            simFile = new SimFile(xmlDataPath);
+        }
+        catch (Exception ex)
+        {
+            ex.LogError($"Ошибка в чтении файла '{xmlDataPath}': ");
+            return;
+        }
 
         if (simFile.CatalogToElement.Keys.Count() == 0)
         {
@@ -149,15 +147,24 @@ class Organizer
             return;
         }
 
-        foreach(var pair in simFile.CatalogToElement)
+        // Открываем Исходную модель:
+
+        DgnFile sourceFile;
+        DgnModel sourceModel;
+        DgnDocument sourceDgnDoc;
+        DgnFileOwner sourceDgnFileOwner;
+        LoadOrCreate_FileAndDefaultModel(out sourceFile, out sourceModel,
+            out sourceDgnDoc, out sourceDgnFileOwner, uri, null);
+
+        foreach (var pair in simFile.CatalogToElement)
         {            
             string catalogType = pair.Key;
             IList<SimElement> simElements = pair.Value;
 
             CatalogTypeData typeData = null;
-            if (Config.Instance.CatalogTypesDataDict.ContainsKey(catalogType))
+            if (Config.Instance.CatalogTypesData.ContainsKey(catalogType))
             {
-                typeData = Config.Instance.CatalogTypesDataDict[catalogType];
+                typeData = Config.Instance.CatalogTypesData[catalogType];
                 catalogType = string.IsNullOrWhiteSpace(typeData.OverrideName) ?
                     catalogType : typeData.OverrideName;
 
@@ -182,10 +189,15 @@ class Organizer
             destFolder = ensureFolderStructure(outputFolder, structure);
             string destUri = Path.Combine(destFolder, catalogType + ".dgn");
 
+            // Открываем Целевую модель:
+
             DgnFile destFile; 
             DgnModel destModel;
+            DgnDocument destDgnDoc;
+            DgnFileOwner destDgnFileOwner;
             LoadOrCreate_FileAndDefaultModel(
-                out destFile, out destModel, destUri, sourceFile);
+                out destFile, out destModel, out destDgnDoc, out destDgnFileOwner,
+                destUri, sourceFile);
 
             using (ElementCopyContext copyContext = new ElementCopyContext(destModel))
             {
@@ -197,31 +209,35 @@ class Organizer
                     Element sourceElement = sourceModel.FindElementById(simEl.ElementId);
                     if (sourceElement == null)
                     {
-                        Logger.Log.Error(
+                        Logger.Log.ErrorEx(
                             $"Не найден элемент '{simEl.ElementId}' в файле '{uri}'");
                         continue;
                     }
-
                     copyContext.DoCopy(sourceElement);
                 }
-                destFile.ProcessChanges(DgnSaveReason.None);
+                destFile.ProcessChanges(DgnSaveReason.None);                
             }
+            destDgnFileOwner.Dispose();
+            destDgnDoc.Dispose();
         }
+    
+        sourceDgnDoc.Dispose();
+        sourceDgnFileOwner.Dispose();
     }
 
     private static bool LoadOrCreate_FileAndDefaultModel(
-        out DgnFile file, out DgnModel defaultModel, string uri, DgnFile seedFile)
+        out DgnFile file, out DgnModel defaultModel, 
+        out DgnDocument dgnDoc, out DgnFileOwner dgnFileOwner,
+        string uri, DgnFile seedFile)
     {
         StatusInt statusInt;
         DgnFileStatus status;
-        DgnDocument dgnDoc;
-        DgnFileOwner dgnOwner;
 
         if (File.Exists(uri))
         {
             dgnDoc = DgnDocument.CreateForLocalFile(uri);
-            dgnOwner = DgnFile.Create(dgnDoc, DgnFileOpenMode.ReadWrite);
-            file = dgnOwner.DgnFile;
+            dgnFileOwner = DgnFile.Create(dgnDoc, DgnFileOpenMode.ReadWrite);
+            file = dgnFileOwner.DgnFile;
             
         }
         else
@@ -231,9 +247,9 @@ class Organizer
                 fileName, uri, 0, fileName, DgnDocument.OverwriteMode.Prompt, 
                 DgnDocument.CreateOptions.Default);
             SeedData seedData = new SeedData(seedFile, 0, SeedCopyFlags.AllData, true);
-            dgnOwner = DgnFile.CreateNew(out status, dgnDoc, 
+            dgnFileOwner = DgnFile.CreateNew(out status, dgnDoc, 
                 DgnFileOpenMode.ReadWrite, seedData, DgnFileFormatType.V8, true);
-            file = dgnOwner.DgnFile;
+            file = dgnFileOwner.DgnFile;
         }
 
         status = file.LoadDgnFile(out statusInt);

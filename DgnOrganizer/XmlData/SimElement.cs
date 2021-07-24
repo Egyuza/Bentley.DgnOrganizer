@@ -21,8 +21,12 @@ class SimElement
     {
         ElementId = (ElementId)long.Parse(element.Attribute("ID").Value);
         XElement dataGroup = element.XPathSelectElement("DataGroupInstances/DataGroup");
-        CatalogType = dataGroup.Attribute("catalogType").Value;
-        CatalogItem = dataGroup.Attribute("catalogItem").Value;
+
+        if (dataGroup != null)
+        {
+            CatalogType = dataGroup.Attribute("catalogType").Value;
+            CatalogItem = dataGroup.Attribute("catalogItem").Value;
+        }
     }
 }
 }

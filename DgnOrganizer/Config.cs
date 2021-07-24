@@ -23,7 +23,7 @@ class Config
         Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, ".Config.json");
 
     public Dictionary<string, string> TagToSpecialization{ get; set; }
-    public Dictionary<string, CatalogTypeData> CatalogTypesDataDict { get; set; }
+    public Dictionary<string, CatalogTypeData> CatalogTypesData { get; set; }
 
     public static Config Instance => instance_ ?? (instance_ = getInstance_());
 
@@ -40,10 +40,10 @@ class Config
         config.TagToSpecialization = new Dictionary<string, string>();
         config.TagToSpecialization.Add("A", "Architecture");
 
-        config.CatalogTypesDataDict = new Dictionary<string, CatalogTypeData>();
-        config.CatalogTypesDataDict.Add("Door", new CatalogTypeData() {
+        config.CatalogTypesData = new Dictionary<string, CatalogTypeData>();
+        config.CatalogTypesData.Add("Door", new CatalogTypeData() {
             Specialization = "Architecture", OverrideName = "Двери" });
-        config.CatalogTypesDataDict.Add("Window", new CatalogTypeData() {
+        config.CatalogTypesData.Add("Window", new CatalogTypeData() {
             Specialization = "Architecture", OverrideName = "Окно" });
 
         File.WriteAllText(path_, JsonConvert.SerializeObject(config));

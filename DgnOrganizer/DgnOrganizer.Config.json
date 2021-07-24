@@ -2,9 +2,9 @@
   "TagToSpecialization": {
     "A": "Architecture",
     "S": "Struct",
-    //"C":  "Concrete"
+    "C":  "Concrete"
   },
-  "CatalogTypesDataDict": {
+  "CatalogTypesData": {
     //"Door": {
     //  "Specialization": "Architecture",
     //  "OverrideName": "Двери"
