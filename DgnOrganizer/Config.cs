@@ -34,6 +34,12 @@ class Config
         return JsonConvert.DeserializeObject<Config>(text);
     }
 
+    public void SaveChanges()
+    {
+        string json = JsonConvert.SerializeObject(this, Formatting.Indented);
+        File.WriteAllText(path_, json, UTF8Encoding.UTF8);
+    }
+
     public static void ExportTestToFile()
     {
         var config = new Config();

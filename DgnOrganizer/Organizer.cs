@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace DgnOrganizer
 {
@@ -18,16 +19,117 @@ class Organizer
         {
             Logger.setLogFolder(options.LogDir);
             Logger.Log.StartErrorsCounting();
-            Logger.Log.Info("=== START WORK");
-            run_(options);
+
+            if (options.FillConf)
+            {
+                Logger.Log.Info("=== START WORK: заполнение конфиг-файла");
+                fillConfig_(options);
+            }
+            else
+            {
+                Logger.Log.Info("=== START WORK: Компоновка dgn-файлов");
+                run_(options);
+            }
+
         }
         catch (Exception ex) 
         {
             ex.LogError();
         }
-        Logger.Log.Info("=== END WORK");
-        Logger.Log.Info($"Ошибок: {Logger.Log.GetErrorsCount()}");
-        Console.ReadKey();
+        finally
+        {
+            Logger.Log.Info("=== END WORK");
+            Logger.Log.Info($"Ошибок: {Logger.Log.GetErrorsCount()}");
+        }
+
+        if (!options.CloseOnStop)
+        {
+            Console.ReadKey();
+        }
+        else
+        {
+            Environment.Exit(0);
+            //Application.Exit();
+        }
+    }
+
+    private static void fillConfig_(Options options)
+    {
+        if (string.IsNullOrWhiteSpace(options.Path))
+        {
+            Logger.Log.ErrorEx("В качестве 1-го аргумента должен выступать путь к обрабатываемому каталогу моделей dgn");
+            return;
+        }
+
+        string workFolder = Path.GetFullPath(options.Path);
+        if (!Directory.Exists(workFolder))
+        {
+            Logger.Log.ErrorEx($"Не найден рабочий каталог '{workFolder}'");
+            return;
+        }
+
+        string[] dgnPaths = Directory.GetFiles(workFolder, "*.dgn", SearchOption.AllDirectories);
+
+        bool dirty = false;
+
+        int i = 0;
+        foreach (string dgnPath in dgnPaths)
+        {
+            try
+            {
+                processFileToFillConfig(dgnPath, ref dirty);
+            }
+            catch (Exception ex)
+            {
+                ex.LogError($"Файл '{dgnPath}':");
+            }
+            finally
+            {
+                if (i % 50 == 0)
+                {
+                    System.Console.ForegroundColor = ConsoleColor.Green;
+                    System.Console.WriteLine($"Обработано {(int)(double)i * 100 / dgnPaths.Count()} %");
+                    System.Console.ResetColor();
+                }
+                ++i;
+            }
+        }
+
+        if (dirty)
+        {
+            Config.Instance.SaveChanges();
+        }
+
+    }
+
+    private static void processFileToFillConfig(string dgnUri, ref bool dirty)
+    {
+        string unitCode;
+        string specTag;
+        string itemCode;
+        SimFile simFile;
+
+        if (!getData(dgnUri, out unitCode, out specTag, out itemCode, out simFile))
+        {
+            return;
+        }
+
+        Dictionary<string, CatalogTypeData> 
+            configCatalogTypes = Config.Instance.CatalogTypesData;
+        Dictionary<string, string> tags2spec = Config.Instance.TagToSpecialization;
+
+        string specFullName = tags2spec.ContainsKey(specTag) 
+            ? tags2spec[specTag] : null;
+
+        foreach (string catalogType in simFile.CatalogToElement.Keys)
+        {
+            if (!configCatalogTypes.ContainsKey(catalogType))
+            {
+                configCatalogTypes.Add(catalogType, 
+                    new CatalogTypeData() {Specialization = specFullName});
+                dirty = true;
+            }
+        }        
     }
 
     private static void run_(Options options)
@@ -37,6 +139,21 @@ class Organizer
             Logger.Log.ErrorEx("В качестве 1-го аргумента должен выступать путь к обрабатываемому каталогу моделей dgn");
             return;
         }
+
+        string outputDir = options.OutputDir;
+
+        if (!Directory.Exists(outputDir))
+        {
+            Directory.CreateDirectory(outputDir);
+        }
+
+        if (!HasWriteAccessToFolder(outputDir))
+        {
+            Logger.Log.ErrorEx($"Нет прав на запись в выходной каталог '{outputDir}'");
+            return;
+        }
+
+        clearFolder(outputDir);        
 
         string workFolder = Path.GetFullPath(options.Path);
         if (!Directory.Exists(workFolder))
@@ -60,17 +177,16 @@ class Organizer
             DgnPlatformLib.Initialize(host, false);
         }
 
-        string outputDir = options.OutputDir;
-        if (Directory.Exists(outputDir))
-        {
-            Directory.Delete(outputDir, true);
-        }
-
         System.Console.Write("Обработка... ");
 
         int i = 0;
         foreach (string dgnPath in dgnPaths)
         {
+            if (dgnPath.EndsWith("FH1_10UBA00_M_ET-Route_+0.100.dgn"))
+            {
+                ;
+            }
+
             try
             {
                 processFile(dgnPath, outputDir);
@@ -84,7 +200,7 @@ class Organizer
                 if (i % 50 == 0)
                 {
                     System.Console.ForegroundColor = ConsoleColor.Green;
-                    System.Console.WriteLine($"Обработанно {(int)(double)i * 100 / dgnPaths.Count()} %");
+                    System.Console.WriteLine($"Обработано {(int)(double)i * 100 / dgnPaths.Count()} %");
                     System.Console.ResetColor();
                 }
                 ++i;
@@ -100,37 +216,30 @@ class Organizer
             rootFolder, structure[0], structure[1], structure[2])).FullName;
     }
 
-    static void processFile(string uri, string outputFolder)
+    static bool getData(string dgnUri, out string unitCode, out string specTag, 
+        out string itemCode, out SimFile simFile)
     {
+        unitCode = null;
+        specTag = null;
+        itemCode = null;
+        simFile = null;
+
         Regex regex = new Regex("^[A-Z0-9]{3,4}_(([0-9]{2}[A-Z]{3})[0-9]{2})_([A-Z])?(_[-\\w]+)?(_[\\+-.,0-9]+)?.dgn$");
-        
-        string sourceFileName = Path.GetFileName(uri);
+
+        string sourceFileName = Path.GetFileName(dgnUri);
         Match match = regex.Match(sourceFileName);
         if (!match.Success)
         {
             Logger.Log.Warn($"'{sourceFileName}' - не удалось распарсить имя файла");
-            return;
+            return false;
         }
 
-        string unitCode = match.Groups[2].Value;
-        string spec = match.Groups[3].Value;
-        string itemCode = match.Groups[1].Value;
+        unitCode = match.Groups[2].Value;
+        specTag = match.Groups[3].Value;
+        itemCode = match.Groups[1].Value;
 
-        bool IsUnrecognizedSpec = false;
 
-        if (Config.Instance.TagToSpecialization.ContainsKey(spec))
-        {
-            spec = Config.Instance.TagToSpecialization[spec];
-        }
-        else
-        {
-            spec = "Unrecognized";
-            IsUnrecognizedSpec = true;
-            Logger.Log.Warn($"'{sourceFileName}:' - '{spec}' - не распозана литера специальности, но файл будет обработан в соответствии с конфигом");
-        }
-
-        SimFile simFile;
-        string xmlDataPath = Path.ChangeExtension(uri, ".xml");
+        string xmlDataPath = Path.ChangeExtension(dgnUri, ".xml");
         try
         {
             simFile = new SimFile(xmlDataPath);
@@ -138,13 +247,55 @@ class Organizer
         catch (Exception ex)
         {
             ex.LogError($"Ошибка в чтении файла '{xmlDataPath}': ");
-            return;
+            return false;
+        }
+
+        return true;
+
+        //bool IsUnrecognizedSpec = false;
+        //if (Config.Instance.TagToSpecialization.ContainsKey(specTag))
+        //{
+        //    specTag = Config.Instance.TagToSpecialization[specTag];
+        //}
+        //else
+        //{
+        //    specTag = "Unrecognized";
+        //    IsUnrecognizedSpec = true;
+        //    Logger.Log.Warn($"'{sourceFileName}:' - '{specTag}' - не распозана литера специальности, но файл будет обработан в соответствии с конфигом");
+        //}
+    }
+
+    static bool processFile(string dgnUri, string outputFolder)
+    {
+        string unitCode;
+        string specTag;
+        string itemCode;
+        SimFile simFile;
+
+        if (!getData(dgnUri, out unitCode, out specTag, out itemCode, out simFile))
+        {
+            return false;
+        }
+
+        string sourceFileName = Path.GetFileName(dgnUri);
+
+        bool IsUnrecognizedSpec = false;
+
+        if (Config.Instance.TagToSpecialization.ContainsKey(specTag))
+        {
+            specTag = Config.Instance.TagToSpecialization[specTag];
+        }
+        else
+        {
+            specTag = "Unrecognized";
+            IsUnrecognizedSpec = true;
+            Logger.Log.Warn($"'{sourceFileName}:' - '{specTag}' - не распозана литера специальности, но файл будет обработан в соответствии с конфигом");
         }
 
         if (simFile.CatalogToElement.Keys.Count() == 0)
         {
             Logger.Log.Warn($"'{sourceFileName}:' не найдены элементы для обработки");
-            return;
+            return false;
         }
 
         // Открываем Исходную модель:
@@ -154,7 +305,7 @@ class Organizer
         DgnDocument sourceDgnDoc;
         DgnFileOwner sourceDgnFileOwner;
         LoadOrCreate_FileAndDefaultModel(out sourceFile, out sourceModel,
-            out sourceDgnDoc, out sourceDgnFileOwner, uri, null);
+            out sourceDgnDoc, out sourceDgnFileOwner, dgnUri, null);
 
         foreach (var pair in simFile.CatalogToElement)
         {            
@@ -172,15 +323,16 @@ class Organizer
 
             string destFolder;
             // итоговая структура каталогов:
-            string[] structure = new string[] { unitCode, spec, itemCode };
+            string[] structure = new string[] { unitCode, specTag, itemCode };
 
             if (IsUnrecognizedSpec)
             {
-                spec = (typeData != null) ? 
+                specTag = (typeData?.Specialization != null) ? 
                     typeData.Specialization : "Unrecognized";
-                structure = new string[] { unitCode, spec, itemCode };
+                structure = new string[] { unitCode, specTag, itemCode };
             }
-            else if (typeData != null && !typeData.Specialization.Equals(spec))
+            else if (typeData?.Specialization != null &&
+                !typeData.Specialization.Equals(specTag))
             {
                 structure = new string[] { 
                     unitCode, typeData.Specialization, itemCode };
@@ -210,7 +362,7 @@ class Organizer
                     if (sourceElement == null)
                     {
                         Logger.Log.ErrorEx(
-                            $"Не найден элемент '{simEl.ElementId}' в файле '{uri}'");
+                            $"Не найден элемент '{simEl.ElementId}' в файле '{dgnUri}'");
                         continue;
                     }
                     copyContext.DoCopy(sourceElement);
@@ -223,6 +375,7 @@ class Organizer
     
         sourceDgnDoc.Dispose();
         sourceDgnFileOwner.Dispose();
+        return true;
     }
 
     private static bool LoadOrCreate_FileAndDefaultModel(
@@ -258,7 +411,44 @@ class Organizer
             file.GetModelIndexCollection().First().Id);
 
         return status == DgnFileStatus.Success;
+    }
 
+    public static void clearFolder(string FolderName)
+    {
+        DirectoryInfo dir = new DirectoryInfo(FolderName);
+
+        foreach(FileInfo fi in dir.GetFiles())
+        {
+            fi.Delete();
+        }
+
+        foreach (DirectoryInfo di in dir.GetDirectories()) 
+        {
+            clearFolder(di.FullName);
+            di.Delete();
+        }
+    }
+
+    public static bool HasWriteAccessToFolder(string folderPath)
+    {
+        try
+        {
+            bool canWrite = false;
+
+            string tmpName = Path.GetFileName(Path.GetTempFileName());
+            string tmpPath = Path.Combine(folderPath, tmpName);
+            using(var fileStream = File.Create(tmpPath))
+            {
+                canWrite = fileStream.CanWrite;                    
+                fileStream.Close();
+            }
+            File.Delete(tmpPath);
+            return canWrite;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return false;
+        }
     }
 }
 }

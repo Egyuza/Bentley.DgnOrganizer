@@ -28,6 +28,14 @@ namespace DgnOrganizer
         [Description(": Показать справку")]
         public bool Help { get; set; }
 
+        [Option("fillConfig", "fc")]
+        [Description(": Выгрузить список элементов в конфиг-файл")]
+        public bool FillConf { get; set; }
+
+        [Option("close", "c")]
+        [Description(": Закрывать при завершении")]
+        public bool CloseOnStop { get; set; }
+
         [CommandHandler]
         public void Handler(IConsoleAdapter console, IErrorAdapter error)
         {
