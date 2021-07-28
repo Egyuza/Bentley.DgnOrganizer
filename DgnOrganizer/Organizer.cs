@@ -104,12 +104,13 @@ class Organizer
 
     private static void processFileToFillConfig(string dgnUri, ref bool dirty)
     {
+        string prefix;
         string unitCode;
         string specTag;
         string itemCode;
         SimFile simFile;
 
-        if (!getData(dgnUri, out unitCode, out specTag, out itemCode, out simFile))
+        if (!getData(dgnUri, out prefix, out unitCode, out specTag, out itemCode, out simFile))
         {
             return;
         }
@@ -216,15 +217,16 @@ class Organizer
             rootFolder, structure[0], structure[1], structure[2])).FullName;
     }
 
-    static bool getData(string dgnUri, out string unitCode, out string specTag, 
+    static bool getData(string dgnUri, out string prefix, out string unitCode, out string specTag, 
         out string itemCode, out SimFile simFile)
     {
+        prefix = null;
         unitCode = null;
         specTag = null;
         itemCode = null;
         simFile = null;
 
-        Regex regex = new Regex("^[A-Z0-9]{3,4}_(([0-9]{2}[A-Z]{3})[0-9]{2})_([A-Z])?(_[-\\w]+)?(_[\\+-.,0-9]+)?.dgn$");
+        Regex regex = new Regex("^([A-Z0-9]{3,4})_(([0-9]{2}[A-Z]{3})[0-9]{2})_([A-Z])?(_[-\\w]+)?(_[\\+-.,0-9]+)?.dgn$");
 
         string sourceFileName = Path.GetFileName(dgnUri);
         Match match = regex.Match(sourceFileName);
@@ -234,10 +236,10 @@ class Organizer
             return false;
         }
 
-        unitCode = match.Groups[2].Value;
-        specTag = match.Groups[3].Value;
-        itemCode = match.Groups[1].Value;
-
+        prefix = match.Groups[1].Value;
+        unitCode = match.Groups[3].Value;
+        specTag = match.Groups[4].Value;
+        itemCode = match.Groups[2].Value;
 
         string xmlDataPath = Path.ChangeExtension(dgnUri, ".xml");
         try
@@ -251,28 +253,17 @@ class Organizer
         }
 
         return true;
-
-        //bool IsUnrecognizedSpec = false;
-        //if (Config.Instance.TagToSpecialization.ContainsKey(specTag))
-        //{
-        //    specTag = Config.Instance.TagToSpecialization[specTag];
-        //}
-        //else
-        //{
-        //    specTag = "Unrecognized";
-        //    IsUnrecognizedSpec = true;
-        //    Logger.Log.Warn($"'{sourceFileName}:' - '{specTag}' - не распозана литера специальности, но файл будет обработан в соответствии с конфигом");
-        //}
     }
 
     static bool processFile(string dgnUri, string outputFolder)
     {
+        string prefix;
         string unitCode;
         string specTag;
         string itemCode;
         SimFile simFile;
 
-        if (!getData(dgnUri, out unitCode, out specTag, out itemCode, out simFile))
+        if (!getData(dgnUri, out prefix, out unitCode, out specTag, out itemCode, out simFile))
         {
             return false;
         }
@@ -339,7 +330,9 @@ class Organizer
             }
 
             destFolder = ensureFolderStructure(outputFolder, structure);
-            string destUri = Path.Combine(destFolder, catalogType + ".dgn");
+
+            string destUri = 
+                Path.Combine(destFolder, $"{prefix}_{itemCode}_{catalogType}.dgn");
 
             // Открываем Целевую модель:
 
