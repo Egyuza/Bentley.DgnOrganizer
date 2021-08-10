@@ -5,9 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace DgnOrganizer
 {
@@ -19,6 +17,8 @@ class Organizer
         {
             Logger.setLogFolder(options.LogDir);
             Logger.Log.StartErrorsCounting();
+
+            Config.setPath(options.ConfigPath);
 
             if (options.FillConf)
             {
@@ -95,11 +95,15 @@ class Organizer
             }
         }
 
-        if (dirty)
+        if (Config.Instance.HasChanges())
         {
             Config.Instance.SaveChanges();
+            Logger.Log.Info("Конфиг-файл обновлён");
         }
-
+        else
+        {
+            Logger.Log.Info("Изменений не было найдено");
+        }
     }
 
     private static void processFileToFillConfig(string dgnUri, ref bool dirty)
@@ -115,7 +119,7 @@ class Organizer
             return;
         }
 
-        Dictionary<string, CatalogTypeData> 
+        SortedDictionary<string, CatalogTypeData> 
             configCatalogTypes = Config.Instance.CatalogTypesData;
         Dictionary<string, string> tags2spec = Config.Instance.TagToSpecialization;
 
@@ -129,6 +133,15 @@ class Organizer
                 configCatalogTypes.Add(catalogType, 
                     new CatalogTypeData() {Specialization = specFullName});
                 dirty = true;
+            }
+            else if (!string.IsNullOrWhiteSpace(specFullName))
+            {
+                CatalogTypeData typeData = configCatalogTypes[catalogType];
+                if (string.IsNullOrWhiteSpace(typeData.Specialization))
+                {
+                    typeData.Specialization = specFullName;
+                    dirty = true;
+                }
             }
         }        
     }
@@ -213,8 +226,9 @@ class Organizer
 
     static string ensureFolderStructure(string rootFolder, string[] structure)
     {
-        return Directory.CreateDirectory(Path.Combine(
-            rootFolder, structure[0], structure[1], structure[2])).FullName;
+        return Directory.CreateDirectory(
+            Path.Combine(rootFolder, Path.Combine(structure))
+        ).FullName;
     }
 
     static bool getData(string dgnUri, out string prefix, out string unitCode, out string specTag, 
@@ -226,20 +240,20 @@ class Organizer
         itemCode = null;
         simFile = null;
 
-        Regex regex = new Regex("^([A-Z0-9]{3,4})_(([0-9]{2}[A-Z]{3})[0-9]{2})_([A-Z])?(_[-\\w]+)?(_[\\+-.,0-9]+)?.dgn$");
+        Regex regex = new Regex(@"^([A-Z0-9]{3,4})_(([0-9]{2}[A-Z]{3})[0-9]{2})(_[A-Z]_)?");
 
         string sourceFileName = Path.GetFileName(dgnUri);
         Match match = regex.Match(sourceFileName);
         if (!match.Success)
         {
-            Logger.Log.Warn($"'{sourceFileName}' - не удалось распарсить имя файла");
+            Logger.Log.ErrorEx($"'{sourceFileName}' - не удалось распарсить имя файла");
             return false;
         }
 
         prefix = match.Groups[1].Value;
-        unitCode = match.Groups[3].Value;
-        specTag = match.Groups[4].Value;
         itemCode = match.Groups[2].Value;
+        unitCode = match.Groups[3].Value;
+        specTag = match.Groups[4].Value.Trim('_');
 
         string xmlDataPath = Path.ChangeExtension(dgnUri, ".xml");
         try
@@ -265,6 +279,12 @@ class Organizer
 
         if (!getData(dgnUri, out prefix, out unitCode, out specTag, out itemCode, out simFile))
         {
+            // файл не обработан:
+            string copyFileName = Path.Combine(
+                ensureFolderStructure(outputFolder, new string[] {MISSED}),
+                Path.GetFileName(dgnUri));
+            File.Copy(dgnUri, copyFileName);
+
             return false;
         }
 
@@ -278,14 +298,14 @@ class Organizer
         }
         else
         {
-            specTag = "Unrecognized";
             IsUnrecognizedSpec = true;
-            Logger.Log.Warn($"'{sourceFileName}:' - '{specTag}' - не распозана литера специальности, но файл будет обработан в соответствии с конфигом");
+            Logger.Log.Warn($"'{sourceFileName}': не распозана литера специальности '{specTag}', файл будет обработан в соответствии с конфигом");
+            specTag = UNRECOGNIZED;
         }
 
         if (simFile.CatalogToElement.Keys.Count() == 0)
         {
-            Logger.Log.Warn($"'{sourceFileName}:' не найдены элементы для обработки");
+            Logger.Log.Warn($"'{sourceFileName}': не найдены элементы для обработки");
             return false;
         }
 
@@ -309,28 +329,21 @@ class Organizer
                 typeData = Config.Instance.CatalogTypesData[catalogType];
                 catalogType = string.IsNullOrWhiteSpace(typeData.OverrideName) ?
                     catalogType : typeData.OverrideName;
-
             }
 
-            string destFolder;
             // итоговая структура каталогов:
-            string[] structure = new string[] { unitCode, specTag, itemCode };
-
-            if (IsUnrecognizedSpec)
+            string[] structure;
             {
-                specTag = (typeData?.Specialization != null) ? 
-                    typeData.Specialization : "Unrecognized";
+                string configSpec = typeData?.Specialization;
+                if (!string.IsNullOrWhiteSpace(configSpec) &&
+                    (IsUnrecognizedSpec || !specTag.Equals(configSpec)))
+                {
+                    specTag = configSpec;
+                }
                 structure = new string[] { unitCode, specTag, itemCode };
             }
-            else if (typeData?.Specialization != null &&
-                !typeData.Specialization.Equals(specTag))
-            {
-                structure = new string[] { 
-                    unitCode, typeData.Specialization, itemCode };
-            }
 
-            destFolder = ensureFolderStructure(outputFolder, structure);
-
+            string destFolder = ensureFolderStructure(outputFolder, structure);
             string destUri = 
                 Path.Combine(destFolder, $"{prefix}_{itemCode}_{catalogType}.dgn");
 
@@ -443,5 +456,8 @@ class Organizer
             return false;
         }
     }
+
+    private const string UNRECOGNIZED = "[UNRECOGNIZED]";
+    private const string MISSED = "[MISSED]";
 }
 }

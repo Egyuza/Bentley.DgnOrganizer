@@ -16,6 +16,10 @@ namespace DgnOrganizer
         [Description(": Путь к обрабатываемому каталогу моделей dgn")]
         public string Path { get; set; }
 
+        [Option("configPath", "cp")]
+        [Description(": Путь к конфигурационному файлу")]
+        public string ConfigPath { get; set; }
+
         [Option("out", "o")]
         [Description(": Каталог сохранения результирующих скомпонованных dgn-моделей")]
         public string OutputDir { get; set; }
@@ -42,15 +46,25 @@ namespace DgnOrganizer
             OutputDir = string.IsNullOrWhiteSpace(OutputDir) ?
                 System.IO.Path.Combine(Path, "_Organized") : OutputDir;
 
+            ConfigPath = string.IsNullOrWhiteSpace(ConfigPath) 
+                ? Config.DefaultPath
+                : ConfigPath;
+
             LogDir = string.IsNullOrWhiteSpace(LogDir) 
                 ? System.IO.Path.Combine(System.IO.Path.GetDirectoryName(
                     Assembly.GetExecutingAssembly().Location), "_log") 
                 : LogDir;
 
-            console.WrapLine("Обрабатываемый каталог: \"{0}\".", Path);
-            console.WrapLine("Результирующий каталог: \"{0}\".", OutputDir);
+            console.WrapLine(Assembly.GetExecutingAssembly().FullName);
+            console.WrapLine($"Обрабатываемый каталог: \"{Path}\"");
+            console.WrapLine($"Результирующий каталог: \"{OutputDir}\"");
+            console.WrapLine($"Кофиг-файл: \"{ConfigPath}\"");
+            console.WrapLine($"Каталог лог-файла: \"{LogDir}\"");
+            console.WrapLine($"Сценарий: \"{(FillConf ? "Заполнение конфиг-файла" : "Обработка dgn-файлов")}\"");
+            console.WrapLine("");
 
             Organizer.Run(this);
+            return;
         }
     }
 }

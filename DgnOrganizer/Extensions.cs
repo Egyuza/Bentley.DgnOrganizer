@@ -38,7 +38,7 @@ namespace DgnOrganizer
                 (ex.InnerException != null ? 
                     ("\n" + ex.InnerException.Message) : string.Empty)
 #if DEBUG
-                    + ex.StackTrace
+                    + "\n" + ex.StackTrace
 #endif
             );
         }

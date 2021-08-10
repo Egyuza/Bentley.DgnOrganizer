@@ -2,16 +2,192 @@
   "TagToSpecialization": {
     "A": "Architecture",
     "S": "Struct",
-    "C":  "Concrete"
+    "C": "Concrete"
   },
   "CatalogTypesData": {
-    //"Door": {
-    //  "Specialization": "Architecture",
-    //  "OverrideName": "Двери"
-    //},
-    //"Window": {
-    //  "Specialization": "Architecture",
-    //  "OverrideName": "Окно"
-    //}
+    "BuildingFrame": {
+      "Specialization": "Struct",
+      "OverrideName": null
+    },
+    "CompoundWalls": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Ceiling": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Concrete Beam": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "Concrete Column": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "ConcreteSlabs": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "ConcreteStair": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "ConcreteWalls": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "CurtainWall": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Door": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "ElevatorDoor": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "EmbeddedPart": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "ESC-ROUT": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "ET-ROUT": {
+      "Specialization": null,
+      "OverrideName": null
+    },
+    "FinishFloorSlabs": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Furniture": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "GroundSlabs": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "InsulationSlabs": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "InsulationWalls": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Ladders": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "Louver": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "MassFillSlabs": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Opening": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "Penetrations": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "PlumbingFixtures": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Profile": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "Railing": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "ReinforcedConcreteFloor": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "RoofCovering": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Slab": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "Space": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "SpaceReservation": {
+      "Specialization": "Struct",
+      "OverrideName": null
+    },
+    "SpaceReservationWall": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Stair": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Steel Beam": {
+      "Specialization": "Struct",
+      "OverrideName": null
+    },
+    "SteelPlatform": {
+      "Specialization": "Struct",
+      "OverrideName": null
+    },
+    "SteelSlabsFlooring": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "SteelSlabsLiner": {
+      "Specialization": "Struct",
+      "OverrideName": null
+    },
+    "SteelSlabsPlate": {
+      "Specialization": "Struct",
+      "OverrideName": null
+    },
+    "SteelWallsPlate": {
+      "Specialization": "Struct",
+      "OverrideName": null
+    },
+    "ToiletCompartment": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "Wall": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "WallLeaf": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "WaterproofSlabs": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    },
+    "WaterproofWalls": {
+      "Specialization": "Concrete",
+      "OverrideName": null
+    },
+    "Window": {
+      "Specialization": "Architecture",
+      "OverrideName": null
+    }
   }
 }
