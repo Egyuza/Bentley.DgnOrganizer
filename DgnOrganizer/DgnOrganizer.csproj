@@ -258,6 +258,11 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>Set SDK_PATH="c:\Work\_SDK\Bentley\DgnPlatform.net\02.19.02.124"
-xcopy /Y/S "%25SDK_PATH%25" "$(TargetDir)"</PostBuildEvent>
+xcopy /Y/S "%25SDK_PATH%25" "$(TargetDir)"
+
+IF $(ConfigurationName) == Release (
+powershell Compress-Archive -Path '$(TargetDir)*'  -DestinationPath 'c:\Work\Атомпроект\Bentley\DgnOrganizer\Distrib\$(ProjectName) v_ .zip' -Force
+
+)</PostBuildEvent>
   </PropertyGroup>
 </Project>

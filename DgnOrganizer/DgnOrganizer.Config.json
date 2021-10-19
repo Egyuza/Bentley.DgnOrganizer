@@ -2,7 +2,8 @@
   "TagToSpecialization": {
     "A": "Architecture",
     "S": "Struct",
-    "C": "Concrete"
+    "C": "Concrete",
+    "J": "Support Structures"
   },
   "CatalogTypesData": {
     "BuildingFrame": {

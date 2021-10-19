@@ -211,13 +211,13 @@ class Organizer
             }
             finally
             {
-                if (i % 50 == 0)
+                ++i;                
+                if (i > 1 && (i % 50 == 0 || i == dgnPaths.Count()))
                 {
-                    System.Console.ForegroundColor = ConsoleColor.Green;
-                    System.Console.WriteLine($"Обработано {(int)(double)i * 100 / dgnPaths.Count()} %");
-                    System.Console.ResetColor();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Обработано {(int)(double)i * 100 / dgnPaths.Count()} %");
+                    Console.ResetColor();
                 }
-                ++i;
             }
         }
 
@@ -240,7 +240,7 @@ class Organizer
         itemCode = null;
         simFile = null;
 
-        Regex regex = new Regex(@"^([A-Z0-9]{3,4})_(([0-9]{2}[A-Z]{3})[0-9]{2})(_[A-Z]_)?");
+        Regex regex = new Regex(@"^([A-Z0-9]{3,4})_(([0-9]{2}[A-Z]{3})[0-9&]{0,2})(_[A-Z]_)?");
 
         string sourceFileName = Path.GetFileName(dgnUri);
         Match match = regex.Match(sourceFileName);
@@ -290,17 +290,18 @@ class Organizer
 
         string sourceFileName = Path.GetFileName(dgnUri);
 
+        string specialization = null;
         bool IsUnrecognizedSpec = false;
 
         if (Config.Instance.TagToSpecialization.ContainsKey(specTag))
         {
-            specTag = Config.Instance.TagToSpecialization[specTag];
+            specialization = Config.Instance.TagToSpecialization[specTag];
         }
         else
         {
             IsUnrecognizedSpec = true;
             Logger.Log.Warn($"'{sourceFileName}': не распозана литера специальности '{specTag}', файл будет обработан в соответствии с конфигом");
-            specTag = UNRECOGNIZED;
+            specialization = UNRECOGNIZED;
         }
 
         if (simFile.CatalogToElement.Keys.Count() == 0)
@@ -323,25 +324,25 @@ class Organizer
             string catalogType = pair.Key;
             IList<SimElement> simElements = pair.Value;
 
-            CatalogTypeData typeData = null;
-            if (Config.Instance.CatalogTypesData.ContainsKey(catalogType))
+            if (IsUnrecognizedSpec)
             {
-                typeData = Config.Instance.CatalogTypesData[catalogType];
-                catalogType = string.IsNullOrWhiteSpace(typeData.OverrideName) ?
-                    catalogType : typeData.OverrideName;
-            }
+                CatalogTypeData typeData = null;
+                if (Config.Instance.CatalogTypesData.ContainsKey(catalogType))
+                {
+                    typeData = Config.Instance.CatalogTypesData[catalogType];
+                    catalogType = string.IsNullOrWhiteSpace(typeData.OverrideName) ?
+                        catalogType : typeData.OverrideName;
+                }              
+                
+                string configSpec = typeData?.Specialization;
+                if (!string.IsNullOrWhiteSpace(configSpec))
+                {
+                    specialization = configSpec;
+                }
+            }                  
 
             // итоговая структура каталогов:
-            string[] structure;
-            {
-                string configSpec = typeData?.Specialization;
-                if (!string.IsNullOrWhiteSpace(configSpec) &&
-                    (IsUnrecognizedSpec || !specTag.Equals(configSpec)))
-                {
-                    specTag = configSpec;
-                }
-                structure = new string[] { unitCode, specTag, itemCode };
-            }
+            var structure = new string[] { unitCode, specialization, itemCode };
 
             string destFolder = ensureFolderStructure(outputFolder, structure);
             string destUri = 
